@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cửa 3 — Teacher Dashboard | Nail Salon English</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #e8e0ff, #f3e8ff);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #6f42c1, #5a32a3);
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+        }
+
+        .header h1 { font-size: 1.5rem; margin-bottom: 5px; }
+        .header p { font-size: 0.9rem; opacity: 0.9; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            color: #6f42c1;
+            margin-bottom: 15px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* Student Progress Tracker */
+        .progress-tracker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .progress-step {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #e0e0e0;
+            color: #888;
+        }
+
+        .progress-step.active {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .progress-step.done {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Lesson Plan */
+        .lesson-section {
+            margin-bottom: 20px;
+        }
+
+        .lesson-section h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #6f42c1;
+            padding-bottom: 5px;
+        }
+
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .vocab-table th {
+            background: #6f42c1;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .vocab-table th:first-child { border-radius: 10px 0 0 0; }
+        .vocab-table th:last-child { border-radius: 0 10px 0 0; }
+
+        .vocab-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .vocab-table tr:nth-child(even) { background: #f8f0ff; }
+
+        /* Dialogue */
+        .dialogue-line {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .dialogue-line .speaker {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .dialogue-line .speaker.tech { color: #d63384; }
+        .dialogue-line .speaker.client { color: #6f42c1; }
+
+        .dialogue-line .viet {
+            font-size: 0.8rem;
+            color: #999;
+            font-style: italic;
+            display: block;
+            margin-top: 3px;
+        }
+
+        /* Grammar */
+        .grammar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .grammar-table th {
+            background: #ff69b4;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .grammar-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        /* Activity Guide */
+        .activity-guide {
+            background: #f8f0ff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #6f42c1;
+        }
+
+        .activity-guide h4 {
+            color: #6f42c1;
+            margin-bottom: 5px;
+        }
+
+        .activity-guide p {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Student Writing Display */
+        .student-writing {
+            background: #fff3e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #ff9800;
+            display: none;
+        }
+
+        .student-writing h4 { color: #e65100; margin-bottom: 8px; }
+        .student-writing p { font-size: 0.95rem; line-height: 1.6; }
+
+        /* Buttons */
+        .btn-speak {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 3px;
+            transition: all 0.3s;
+        }
+
+        .btn-speak:hover { background: #5
