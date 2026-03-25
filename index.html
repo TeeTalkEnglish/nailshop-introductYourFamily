@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cửa 3 — Nail Salon: Introducing Yourself & Family</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #ffe0f0, #fff0f5);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255,105,180,0.3);
+        }
+        .header h1 { font-size: 1.5rem; margin-bottom: 5px; }
+        .header p { font-size: 0.9rem; opacity: 0.9; }
+
+        /* Progress */
+        .progress-bar { width: 100%; height: 12px; background: #f0f0f0; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ff69b4, #ff1493); border-radius: 10px; transition: width 0.5s ease; width: 0%; }
+        .progress-text { text-align: center; font-size: 0.85rem; color: #999; margin-bottom: 15px; }
+
+        /* Activity Container */
+        .activity { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: none; }
+        .activity.active { display: block; }
+        .activity-label { display: inline-block; background: #ff69b4; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 12px; }
+        .activity-title { font-size: 1.3rem; color: #333; margin-bottom: 8px; }
+        .activity-desc { font-size: 0.9rem; color: #888; margin-bottom: 20px; line-height: 1.5; }
+
+        /* Vocab Table */
+        .vocab-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .vocab-table th { background: #ff69b4; color: white; padding: 10px; text-align: left; font-size: 0.85rem; }
+        .vocab-table th:first-child { border-radius: 10px 0 0 0; }
+        .vocab-table th:last-child { border-radius: 0 10px 0 0; }
+        .vocab-table td { padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+        .vocab-table tr:nth-child(even) { background: #fdf0f5; }
+
+        /* Listen Card */
+        .listen-card { background: linear-gradient(135deg, #f0e6ff, #e8f4f8); border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; }
+        .listen-phrase { font-size: 1.4rem; font-weight: bold; color: #333; margin: 15px 0; }
+        .listen-viet { font-size: 0.9rem; color: #888; font-style: italic; margin-bottom: 15px; }
+
+        /* Buttons */
+        .btn { border: none; padding: 12px 25px; border-radius: 30px; font-size: 1rem; cursor: pointer; margin: 5px; transition: all 0.3s; }
+        .btn:hover { transform: scale(1.05); }
+        .btn-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); color: white; }
+        .btn-pink:hover { box-shadow: 0 4px 15px rgba(255,20,147,0.4); }
+        .btn-purple { background: #6f42c1; color: white; }
+        .btn-purple:hover { background: #5a32a3; }
+        .btn-green { background: linear-gradient(135deg, #28a745, #20c997); color: white; display: none; }
+        .btn-gray { background: #6c757d; color: white; padding: 8px 20px; font-size: 0.85rem; }
+        .btn-record { background: #ff1493; color: white; }
+        .btn-record.recording { background: #ff0000; animation: pulse 1s infinite; }
+        .btn-full { width: 100%; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+        /* Choices */
+        .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .choice-btn { background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-align: left; }
+        .choice-btn:hover { border-color: #ff69b4; background: #fff5f9; }
+        .choice-btn.correct { border-color: #28a745; background: #d4edda; pointer-events: none; }
+        .choice-btn.wrong { border-color: #dc3545; background: #f8d7da; pointer-events: none; }
+        .choice-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+        /* Dialogue */
+        .dialogue-box { background: #f8f0ff; border-left: 4px solid #6f42c1; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .dialogue-line { margin-bottom: 12px; padding: 10px; border-radius: 10px; font-size: 0.95rem; line-height: 1.5; cursor: pointer; }
+        .dialogue-line:hover { background: rgba(111,66,193,0.05); }
+        .dialogue-line:last-child { margin-bottom: 0; }
+        .speaker { font-weight: bold; display: block; margin-bottom: 3px; }
+        .speaker.tech { color: #d63384; }
+        .speaker.client { color: #6f42c1; }
+        .viet { font-size: 0.8rem; color: #999; font-style: italic; display: block; margin-top: 3px; }
+
+        /* Chat */
+        .chat-container { max-height: 300px; overflow-y: auto; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 12px; }
+        .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 15px; margin-bottom: 10px; font-size: 0.95rem; line-height: 1.4; }
+        .chat-bubble.client-msg { background: #6f42c1; color: white; margin-right: auto; border-bottom-left-radius: 5px; }
+        .chat-bubble.tech-msg { background: #ff69b4; color: white; margin-left: auto; border-bottom-right-radius: 5px; text-align: right; }
+        .chat-hint { font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 4px; }
+
+        /* Input */
+        .text-input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; text-align: center; outline: none; transition: border-color 0.3s; }
+        .text-input:focus { border-color: #ff69b4; }
+
+        /* Translate */
+        .translate-box { background: #f0f8ff; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; }
+        .translate-source { font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 5px; }
+
+        /* Scramble */
+        .scramble-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 15px; }
+        .scramble-word { background: #6f42c1; color: white; padding: 10px 18px; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.3s; user-select: none; }
+        .scramble-word:hover { background: #5a32a3; }
+        .scramble-word.used { opacity: 0.3; pointer-events: none; }
+        .scramble-answer { min-height: 50px; background: #f8f8f8; border: 2px dashed #ccc; border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; justify-content: center; align-items: center; }
+        .placed-word { background: #ff69b4; color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+
+        /* Writing */
+        .writing-area { width: 100%; min-height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; font-family: 'Segoe UI', sans-serif; resize: vertical; outline: none; margin-bottom: 15px; }
+        .writing-area:focus { border-color: #ff69b4; }
+        .writing-prompt { background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; padding: 12px; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
+
+        /* Feedback */
+        .feedback { padding: 12px; border-radius: 10px; margin-top: 12px; font-size: 0.95rem; display: none; }
+        .feedback.show { display: block; }
+        .feedback.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.wrong { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Score */
+        .score-card { text-align: center; padding: 30px; }
+        .score-emoji { font-size: 4rem; margin-bottom: 15px; }
+        .score-number { font-size: 3rem; font-weight: bold; color: #ff1493; margin-bottom: 5px; }
+        .score-label { font-size: 1rem; color: #888; margin-bottom: 20px; }
+        .stars { font-size: 2.5rem; margin-bottom: 20px; }
+
+        @media (max-width: 500px) {
+            .header h1 { font-size: 1.2rem; }
+            .listen-phrase { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>💅 Cửa 3 — Introducing Yourself & Family</h1>
+    <p>Giới Thiệu Bản Thân và Gia Đình tại Tiệm Nail</p>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-text" id="progressText">Activity 0 of 8</div>
+
+<!-- ====== ACT 0: VOCAB ====== -->
+<div class="activity active" id="act0">
+    <span class="activity-label">📚 VOCABULARY</span>
+    <h2 class="activity-title">Key Words — Từ Vựng Chính</h2>
+    <p class="activity-desc">Study these words before we begin! Tap 🔊 to hear each word.</p>
+    <table class="vocab-table">
+        <tr><th>English 🇺🇸</th><th>Vietnamese 🇻🇳</th><th>🔊</th></tr>
+        <tr><td>name</td><td>tên</td><td><button class="btn btn-purple" onclick="speak('name')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>nice to meet you</td><td>rất vui được gặp bạn</td><td><button class="btn btn-purple" onclick="speak('nice to meet you')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>appointment</td><td>lịch hẹn</td><td><button class="btn btn-purple" onclick="speak('appointment')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>first time</td><td>lần đầu tiên</td><td><button class="btn btn-purple" onclick="speak('first time')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>welcome back</td><td>chào mừng trở lại</td><td><button class="btn btn-purple" onclick="speak('welcome back')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>mother</td><td>mẹ</td><td><button class="btn btn-purple" onclick="speak('mother')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>father</td><td>bố</td><td><button class="btn btn-purple" onclick="speak('father')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>sister</td><td>chị / em gái</td><td><button class="btn btn-purple" onclick="speak('sister')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>brother</td><td>anh / em trai</td><td><button class="btn btn-purple" onclick="speak('brother')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>husband</td><td>chồng</td><td><button class="btn btn-purple" onclick="speak('husband')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>wife</td><td>vợ</td><td><button class="btn btn-purple" onclick="speak('wife')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+        <tr><td>children / kids</td><td>con cái</td><td><button class="btn btn-purple" onclick="speak('children')" style="padding:5px 10px;font-size:0.8rem;">🔊</button></td></tr>
+    </table>
+    <button class="btn btn-pink btn-full" onclick="goTo(1)">I'm Ready! Let's Go! 🚀</button>
+</div>
+
+<!-- ====== ACT 1: LISTEN & REPEAT ====== -->
+<div class="activity" id="act1">
+    <span class="activity-label">🎧 ACTIVITY 1</span>
+    <h2 class="activity-title">Listen & Repeat</h2>
+    <p class="activity-desc">Listen to each phrase, then repeat it out loud!</p>
+    <div id="listenArea"></div>
+    <button class="btn btn-green btn-full" id="nextBtn1" onclick="goTo(2)">Continue ➡️</button>
+</div>
+
+<!-- ====== ACT 2: FILL IN BLANK ====== -->
+<div class="activity" id="act2">
+    <span class="activity-label">✏️ ACTIVITY 2</span>
+    <h2 class="activity-title">Fill in the Blank</h2>
+    <p class="activity-desc">Choose the correct word to complete the sentence.</p>
+    <div id="fillArea"></div>
+    <button class="btn btn-green btn-full" id="nextBtn2" onclick="goTo(3)">Continue ➡️</button>
+</div>
+
+<!-- ====== ACT 3: DIALOGUE ====== -->
+<div class="activity" id="act3">
+    <span class="activity-label">💬 ACTIVITY 3</span>
+    <h2 class="activity-title">Nail Shop Dialogue</h2>
+    <p class="activity-desc">Read and listen to this salon conversation. Tap each line to hear it!</p>
+    <div class="dialogue-box" id="dialogueBox"></div>
+    <button class="btn btn-purple btn-full" onclick="playFullDialogue()" style="margin-bottom:10px;">🔊 Play Full Dialogue</button>
+    <button class="btn btn-pink btn-full" onclick="goTo(4)">I Understand! Next ➡️</button>
+</div>
+
+<!-- ====== ACT 4: ROLE PLAY ====== -->
+<div class="activity" id="act4">
+    <span class="activity-label">🎭 ACTIVITY 4</span>
+    <h2 class="activity-title">Role Play — You Are the Nail Tech!</h2>
+    <p class="activity-desc">A new client walks in. Respond as a nail technician!</p>
+    <div class="chat-container" id="rpChat"></div>
+    <div id="rpInputArea">
+        <input type="text" class="text-input" id="rpInput" placeholder="Type your response..." onkeypress="if(event.key==='Enter')sendRP()">
+        <button class="btn btn-pink btn-full" onclick="sendRP()" style="margin-top:10px;">Send 💬</button>
+    </div>
+    <button class="btn btn-green btn-full" id="nextBtn4" onclick="goTo(5)">Continue ➡️</button>
+</div>
+
+<!-- ====== ACT 5: TRANSLATE ====== -->
+<div class="activity" id="act5">
+    <span class="activity-label">🔄 ACTIVITY 5</span>
+    <h2 class="activity-title">Translate to English</h2>
+    <p class="activity-desc">Translate these Vietnamese sentences into English.</p>
+    <div id="transArea"></div>
+    <button class="btn btn-green btn-full" id="nextBtn5" onclick="goTo(6)">Continue ➡️</button>
+</div>
+
+<!-- ====== ACT 6: SCRAMBLE ====== -->
+<div class="activity" id="act6">
+    <span class="activity-label">🧩 ACTIVITY 6</span>
+    <h2 class="activity-title">Sentence Scramble</h2>
+    <p class="activity-desc">Tap the words in the correct order!</p>
+    <div id="scramArea"></div>
+    <button class="btn btn-green btn-full" id="nextBtn6" onclick="goTo(7)">Continue ➡️</button>
+</div>
+
+<!-- ====== ACT 7: WRITING ====== -->
+<div class="activity" id="act7">
+    <span class="activity-label">📝 ACTIVITY 7</span>
+    <h2 class="activity-title">Real Practice — Write Your Introduction!</h2>
+    <p class="activity-desc">Write your own nail tech introduction using words you learned!</p>
+    <div class="writing-prompt">
+        <strong>📋 Include these:</strong><br>
+        1. Greet the client<br>
+        2. Say your name<br>
+        3. Say "nice to meet you"<br>
+        4. Ask if it's their first time<br>
+        5. Ask about appointment<br>
+        6. Ask about family (kids, husband, etc.)
+    </div>
+    <textarea class="writing-area" id="writingArea" placeholder="Hello! My name is..."></textarea>
+    <button class="btn btn-pink btn-full" onclick="checkWriting()">Submit ✅</button>
+    <div class="feedback" id="fb7"></div>
+    <button class="btn btn-green btn-full" id="nextBtn7" onclick="goTo(8)">See My Score ⭐</button>
+</div>
+
+<!-- ====== ACT 8: SCORE ====== -->
+<div class="activity" id="act8">
+    <div class="score-card">
+        <div class="score-emoji">🎉💅</div>
+        <div class="score-number" id="finalScore">0/0</div>
+        <div class="score-label">Correct Answers</div>
+        <div class="stars" id="starsDisplay"></div>
+        <p style="color:#888;margin-bottom:20px;" id="scoreMsg"></p>
+        <button class="btn btn-pink" onclick="location.reload()">🔄 Play Again</button>
+        <a href="index.html" class="btn btn-purple" style="text-decoration:none;display:inline-block;">🏠 Home</a>
+    </div>
+</div>
+
+<script>
+// ============ GLOBALS ============
+let current = 0;
+let score = 0;
+let total = 0;
+const TOTAL_ACTS = 9;
+
+function speak(text) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.85;
+    speechSynthesis.speak(u);
+}
+
+function updateProgress() {
+    const pct = (current / (TOTAL_ACTS - 1)) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = 'Activity ' + current + ' of ' + (TOTAL_ACTS - 1);
+}
+
+function goTo(n) {
+    document.getElementById('act' + current).classList.remove('active');
+    current = n;
+    document.getElementById('act' + current).classList.add('active');
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (n === 1) initListen();
+    if (n === 2) initFill();
+    if (n === 3) initDialogue();
+    if (n === 4) initRP();
+    if (n === 5) initTrans();
+    if (n === 6) initScram();
+    if (n === 8) showScore();
+}
+
+// ============ ACT 1: LISTEN & REPEAT ============
+const phrases = [
+    { en: "Hello! My name is Lily.", vn: "Xin chào! Tên tôi là Lily." },
+    { en: "Nice to meet you!", vn: "Rất vui được gặp bạn!" },
+    { en: "Is this your first time here?", vn: "Đây có phải lần đầu bạn đến đây không?" },
+    { en: "Welcome back!", vn: "Chào mừng trở lại!" },
+    { en: "Do you have an appointment?", vn: "Bạn có lịch hẹn không?" },
+    { en: "Do you have children?", vn: "Bạn có con không?" }
+];
+let listenIdx = 0;
+
+function initListen() { listenIdx = 0; showListen(); }
+
+function showListen() {
+    const el = document.getElementById('listenArea');
+    if (listenIdx >= phrases.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.2rem;">✅ Great job! You practiced all phrases!</div>';
+        document.getElementById('nextBtn1').style.display = 'block';
+        return;
+    }
+    const p = phrases[listenIdx];
+    el.innerHTML = `
+        <div class="listen-card">
+            <p style="color:#888;font-size:0.85rem;">Phrase ${listenIdx+1} of ${phrases.length}</p>
+            <div class="listen-phrase">${p.en}</div>
+            <div class="listen-viet">${p.vn}</div>
+            <button class="btn btn-purple" onclick="speak(\`${p.en}\`)">🔊 Listen</button>
+            <button class="btn btn-record" id="recBtn" onclick="toggleRec()">🎤 Record</button>
+            <p id="recStatus" style="margin-top:10px;color:#888;font-size:0.85rem;"></p>
+        </div>
+        <button class="btn btn-pink btn-full" onclick="listenIdx++;showListen();" style="margin-top:10px;">Next Phrase ➡️</button>
+    `;
+}
+
+let isRec = false, recog = null;
+function toggleRec() {
+    const btn = document.getElementById('recBtn');
+    const st = document.getElementById('recStatus');
+    if (!isRec) {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recog = new SR(); recog.lang = 'en-US';
+            recog.onresult = (e) => {
+                st.textContent = '🗣️ You said: "' + e.results[0][0].transcript + '"';
+                btn.classList.remove('recording'); btn.textContent = '🎤 Record'; isRec = false;
+            };
+            recog.onerror = () => {
+                st.textContent = '❌ Could not hear. Try again!';
+                btn.classList.remove('recording'); btn.textContent = '🎤 Record'; isRec = false;
+            };
+            recog.start(); btn.classList.add('recording'); btn.textContent = '⏹️ Stop'; st.textContent = '🎤 Listening...'; isRec = true;
+        } else { st.textContent = '⚠️ Speech recognition not supported.'; }
+    } else { recog.stop(); btn.classList.remove('recording'); btn.textContent = '🎤 Record'; isRec = false; }
+}
+
+// ============ ACT 2: FILL IN BLANK ============
+const fills = [
+    { s: 'Is this your ___ time here?', opts: ['first','one','new'], ans: 'first' },
+    { s: 'My ___ is Lily. Nice to meet you!', opts: ['appointment','name','sister'], ans: 'name' },
+    { s: 'Do you have an ___?', opts: ['children','appointment','welcome'], ans: 'appointment' },
+    { s: '___ back! Great to see you again!', opts: ['Nice','Welcome','First'], ans: 'Welcome' },
+    { s: 'I also brought my ___ today!', opts: ['appointment','first time','sister'], ans: 'sister' }
+];
+let fillIdx = 0;
+
+function initFill() { fillIdx = 0; showFill(); }
+
+function showFill() {
+    const el = document.getElementById('fillArea');
+    if (fillIdx >= fills.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.2rem;">✅ All done!</div>';
+        document.getElementById('nextBtn2').style.display = 'block';
+        return;
+    }
+    const q = fills[fillIdx];
+    const hl = q.s.replace('___', '<strong style="color:#ff1493;">___</strong>');
+    el.innerHTML = `
+        <p style="font-size:0.85rem;color:#888;margin-bottom:10px;">Question ${fillIdx+1} of ${fills.length}</p>
+        <p style="font-size:1.2rem;margin-bottom:15px;">${hl}</p>
+        <div class="choices">${q.opts.map(o => `<button class="choice-btn" onclick="checkFill(this,'${o}','${q.ans}')">${o}</button>`).join('')}</div>
+    `;
+}
+
+function checkFill(btn, sel, ans) {
+    const btns = btn.parentElement.querySelectorAll('.choice-btn');
+    btns.forEach(b => b.classList.add('disabled'));
+    total++;
+    if (sel === ans) { btn.classList.add('correct'); score++; }
+    else { btn.classList.add('wrong'); btns.forEach(b => { if(b.textContent===ans) b.classList.add('correct'); }); }
+    setTimeout(() => { fillIdx++; showFill(); }, 1200);
+}
+
+// ============ ACT 3: DIALOGUE ============
+const dialogue = [
+    { sp:'tech', nm:'Nail Tech', t:'Hello! My name is Lily. Nice to meet you!', v:'Xin chào! Tên tôi là Lily. Rất vui được gặp bạn!' },
+    { sp:'client', nm:'Client', t:'Nice to meet you too! My name is Sarah.', v:'Tôi cũng rất vui! Tên tôi là Sarah.' },
+    { sp:'tech', nm:'Nail Tech', t:'Is this your first time here?', v:'Đây có phải lần đầu bạn đến đây không?' },
+    { sp:'client', nm:'Client', t:'No, I come every month!', v:'Không, tôi đến đây mỗi tháng!' },
+    { sp:'tech', nm:'Nail Tech', t:'Oh wonderful, welcome back! Do you have an appointment?', v:'Ồ tuyệt, chào mừng trở lại! Bạn có lịch hẹn không?' },
+    { sp:'client', nm:'Client', t:'Yes, I do. I also brought my sister today!', v:'Vâng, có. Hôm nay tôi cũng mang theo chị gái!' },
+    { sp:'tech', nm:'Nail Tech', t:'Great! Nice to meet you both!', v:'Tuyệt! Rất vui được gặp cả hai bạn!' }
+];
+
+function initDialogue() {
+    const box = document.getElementById('dialogueBox');
+    box.innerHTML = dialogue.map(l => `
+        <div class="dialogue-line" onclick="speak('${l.t.replace(/'/g,"\\'")}')">
+            <span class="speaker ${l.sp}">${l.sp==='tech'?'💁‍♀️':'👩'} ${l.nm}:</span>
+            ${l.t}
+            <span class="viet">${l.v}</span>
+        </div>
+    `).join('');
+}
+
+function playFullDialogue() {
+    let d = 0;
+    dialogue.forEach(l => { setTimeout(() => speak(l.t), d); d += l.t.length * 70 + 800; });
+}
+
+// ============ ACT 4: ROLE PLAY ============
+const rpScript = [
+    { sp:'client', t:"Hi there! I'm new here.", hint:'Greet them and introduce yourself!' },
+    { sp:'tech', acc:['hello','hi','my name is','name is'], prompt:'Introduce yourself (say hello + your name)' },
+    { sp:'client', t:"Nice to meet you! My name is Jessica.", hint:'' },
+    { sp:'tech', acc:['nice to meet','glad to meet','pleasure'], prompt:'Say "nice to meet you" back!' },
+    { sp:'client', t:"Is this a walk-in or do I need an appointment?", hint:'' },
+    { sp:'tech', acc:['appointment','do you have','walk-in','welcome'], prompt:'Ask if they have an appointment!' },
+    { sp:'client', t:"I brought my sister too! She wants her nails done.", hint:'' },
+    { sp:'tech', acc:['nice to meet','welcome','great','both','sister'], prompt:'Welcome them both!' }
+];
+let rpIdx = 0;
+
+function initRP() { rpIdx = 0; document.getElementById('rpChat').innerHTML = ''; document.getElementById('rpInputArea').style.display = 'block'; showRP(); }
+
+function showRP() {
+    if (rpIdx >= rpScript.length) {
+        document.getElementById('rpInputArea').style.display = 'none';
+        document.getElementById('nextBtn4').style.display = 'block';
+        document.getElementById('rpChat').innerHTML += '<div style="text-align:center;padding:15px;color:#28a745;font-weight:bold;">✅ Great conversation!</div>';
+        return;
+    }
+    const l = rpScript[rpIdx];
+    const chat = document.getElementById('rpChat');
+    if (l.sp === 'client') {
+        chat.innerHTML += `<div class="chat-bubble client-msg">👩 ${l.t}${l.hint?`<span class="chat-hint">💡 ${l.hint}</span>`:''}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        speak(l.t);
+        rpIdx++;
+        setTimeout(showRP, 1500);
+    } else {
+        document.getElementById('rpInput').placeholder = l.prompt;
+        document.getElementById('rpInput').value = '';
+        document.getElementById('rpInput').focus();
+    }
+}
+
+function sendRP() {
+    const input = document.getElementById('rpInput').value.trim();
+    if (!input) return;
+    const l = rpScript[rpIdx];
+    const chat = document.getElementById('rpChat');
+    const low = input.toLowerCase();
+    const ok = l.acc.some(a => low.includes(a));
+    total++;
+    chat.innerHTML += `<div class="chat-bubble tech-msg">💁‍♀️ ${input}</div>`;
+    if (ok) { score++; chat.innerHTML += '<div style="text-align:center;color:#28a745;font-size:0.85rem;margin:5px 0;">✅ Great!</div>'; }
+    else { chat.innerHTML += '<div style="text-align:center;color:#dc3545;font-size:0.85rem;margin:5px 0;">💡 Try: "' + l.acc[0] + '..."</div>'; }
+    chat.scrollTop = chat.scrollHeight;
+    rpIdx++;
+    setTimeout(showRP, 1000);
+}
+
+// ============ ACT 5: TRANSLATE ============
+const trans = [
+    { vn:'Đây là chị gái tôi.', en:'This is my sister', acc:['this is my sister'] },
+    { vn:'Tên tôi là Lily.', en:'My name is Lily', acc:['my name is'] },
+    { vn:'Bạn có lịch hẹn không?', en:'Do you have an appointment?', acc:['do you have an appointment'] },
+    { vn:'Rất vui được gặp bạn!', en:'Nice to meet you!', acc:['nice to meet you'] },
+    { vn:'Bạn có con không?', en:'Do you have children?', acc:['do you have children','do you have kids'] }
+];
+let transIdx = 0;
+
+function initTrans() { transIdx = 0; showTrans(); }
+
+function showTrans() {
+    const el = document.getElementById('transArea');
+    if (transIdx >= trans.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.2rem;">✅ All translations done!</div>';
+        document.getElementById('nextBtn5').style.display = 'block';
+        return;
+    }
+    const t = trans[transIdx];
+    el.innerHTML = `
+        <div class="translate-box">
+            <p style="color:#888;font-size:0.85rem;">Translate ${transIdx+1} of ${trans.length}</p>
+            <div class="translate-source">🇻🇳 ${t.vn}</div>
+            <p style="font-size:0.85rem;color:#999;margin:10px 0;">Translate to English:</p>
+            <input type="text" class="text-input" id="transInput" placeholder="Type in English..." onkeypress="if(event.key==='Enter')checkTrans()">
+        </div>
+        <button class="btn btn-pink btn-full" onclick="checkTrans()" style="margin-top:10px;">Check ✅</button>
+        <div class="feedback" id="transFb"></div>
+    `;
+}
+
+function checkTrans() {
+    const inp = document.getElementById('transInput').value.trim().toLowerCase();
+    if (!inp) return;
+    const t = trans[transIdx];
+    const fb = document.getElementById('transFb');
+    const ok = t.acc.some(a => inp.includes(a));
+    total++;
+    if (ok) { score++; fb.className='feedback correct show'; fb.textContent='✅ Correct! '+t.en; }
+    else { fb.className='feedback wrong show'; fb.textContent='❌ Answer: "'+t.en+'"'; }
+    setTimeout(() => { transIdx++; showTrans(); }, 1800);
+}
+
+// ============ ACT 6: SCRAMBLE ============
+const scramblesData = [
+    { w:['Nice','to','meet','you','!'], a:'Nice to meet you !' },
+    { w:['My','name','is','Lily','.'], a:'My name is Lily .' },
+    { w:['Is','this','your','first','time','here','?'], a:'Is this your first time here ?' },
+    { w:['Do','you','have','an','appointment','?'], a:'Do you have an appointment ?' },
+    { w:['This','is','my','sister','.'], a:'This is my sister .' }
+];
+let scramIdx = 0, scramSel = [];
+
+function initScram() { scramIdx = 0; showScram(); }
+
+function showScram() {
+    const el = document.getElementById('scramArea');
+    scramSel = [];
+    if (scramIdx >= scramblesData.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;font-size:1.2rem;">✅ All scrambles done!</div>';
+        document.getElementById('nextBtn6').style.display = 'block';
+        return;
+    }
+    const s = scramblesData[scramIdx];
+    const sh = [...s.w].sort(() => Math.random() - 0.5);
+    el.innerHTML = `
+        <p style="font-size:0.85rem;color:#888;margin-bottom:10px;">Sentence ${scramIdx+1} of ${scramblesData.length}</p>
+        <div class="scramble-answer" id="scramAns"></div>
+        <div class="scramble-words" id="scramWords">${sh.map((w,i) => `<span class="scramble-word" data-i="${i}" onclick="pickWord(this,'${w}')">${w}</span>`).join('')}</div>
+        <button class="btn btn-pink btn-full" onclick="checkScram()" style="margin-top:10px;">Check ✅</button>
+        <button class="btn btn-gray" onclick="showScram()" style="margin-top:5px;">🔄 Reset</button>
+        <div class="feedback" id="scramFb" style="margin-top:10px;"></div>
+    `;
+}
+
+function pickWord(el, w) {
+    el.classList.add('used');
+    scramSel.push(w);
+    document.getElementById('scramAns').innerHTML += `<span class="placed-word" onclick="unpickWord(this,'${w}',${el.dataset.i})">${w}</span>`;
+}
+
+function unpickWord(el, w, origI) {
+    el.remove();
+    scramSel = Array.from(document.querySelectorAll('#scramAns .placed-word')).map(e => e.textContent);
+    const words = document.getElementById('scramWords').children;
+    for (let x of words) { if (x.dataset.i == origI && x.classList.contains('used')) { x.classList.remove('used'); break; } }
+}
+
+function checkScram() {
+    const s = scramblesData[scramIdx];
+    const user = scramSel.join(' ');
+    const fb = document.getElementById('scramFb');
+    total++;
+    if (user === s.a) { score++; fb.className='feedback correct show'; fb.textContent='✅ Perfect!'; }
+    else { fb.className='feedback wrong show'; fb.textContent='❌ Correct: '+s.a; }
+    setTimeout(() => { scramIdx++; showScram(); }, 1800);
+}
+
+// ============ ACT 7: WRITING ============
+function checkWriting() {
+    const text = document.getElementById('writingArea').value.trim();
+    const fb = document.getElementById('fb7');
+    if (text.length < 20) { fb.className='feedback wrong show'; fb.textContent='✏️ Please write more!'; return; }
+    const low = text.toLowerCase();
+    let pts = 0, checks = [];
+    const criteria = [
+        { test: low.includes('hello')||low.includes('hi')||low.includes('welcome'), y:'✅ Greeting', n:'❌ Missing greeting' },
+        { test: low.includes('my name is')||low.includes("i'm")||low.includes('i am'), y:'✅ Name', n:'❌ Missing name' },
+        { test: low.includes('nice to meet'), y:'✅ Nice to meet you', n:'❌ Missing nice to meet you' },
+        { test: low.includes('first time'), y:'✅ First time', n:'❌ Missing first time' },
+        { test: low.includes('appointment'), y:'✅ Appointment', n:'❌ Missing appointment' },
+        { test: low.includes('children')||low.includes('kids')||low.includes('husband')||low.includes('wife')||low.includes('family')||low.includes('sister')||low.includes('brother'), y:'✅ Family', n:'❌ Missing family' }
+    ];
+    criteria.forEach(c => { if(c.test){pts++;checks.push(c.y);}else{checks.push(c.n);} });
+    total += 6; score += pts;
+    fb.className = (pts>=4?'feedback correct':'feedback wrong') + ' show';
+    fb.innerHTML = `<strong>${pts}/6 elements found!</strong><br>${checks.join('<br>')}`;
+    document.getElementById('nextBtn7').style.display = 'block';
+}
+
+// ============ ACT 8: SCORE ============
+function showScore() {
+    const pct = total > 0 ? Math.round((score/total)*100) : 0;
+    document.getElementById('finalScore').textContent = score + '/' + total;
+    let s='', m='';
+    if(pct>=90){s='⭐⭐⭐';m='🎉 Amazing! Nail salon English superstar!';}
+    else if(pct>=70){s='⭐⭐';m='👏 Great job! Keep practicing!';}
+    else if(pct>=50){s='⭐';m='💪 Good effort! Review and try again!';}
+    else{s='';m='📚 Keep studying! Practice makes perfect!';}
+    document.getElementById('starsDisplay').textContent = s;
+    document.getElementById('scoreMsg').textContent = m;
+}
+
+updateProgress();
+</script>
+
+</body>
+</html>
